@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { idempotencyKeys } from '../db/schema/index.js';
 import type { Tx } from '../db/scope.js';
 import { AppError, invalid } from './errors.js';
+import { ifMatchOf } from './if-match.js';
 
 // API conventions (D156, D178).
 
@@ -16,8 +17,19 @@ import { AppError, invalid } from './errors.js';
 /** Accepts `3`, `"3"` and `W/"3"`: clients and proxies quote ETag-style values. */
 const IF_MATCH = /^(?:W\/)?"?(\d{1,9})"?$/;
 
-/** The row version the client started from. A write without one is refused with 428. */
-export function requireIfMatch(req: Pick<FastifyRequest, 'headers'>): number {
+/**
+ * The row version the client started from. A write without one is refused with 428. The route
+ * must be listed in IF_MATCH_ROUTES (if-match.ts), so the OpenAPI document declares the header.
+ */
+export function requireIfMatch(
+  req: Pick<FastifyRequest, 'headers' | 'method'> & { routeOptions: { url?: string | undefined } },
+): number {
+  const route = `${req.method} ${req.routeOptions.url}`;
+  if (ifMatchOf(req.method, req.routeOptions.url ?? '') === null) {
+    throw new Error(
+      `${route} reads If-Match but is missing from IF_MATCH_ROUTES (http/if-match.ts)`,
+    );
+  }
   const raw = req.headers['if-match'];
   const value = Array.isArray(raw) ? raw[0] : raw;
   if (value === undefined || value.trim() === '') {

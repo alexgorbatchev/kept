@@ -64,6 +64,11 @@ tried to change, the current version, and who changed it when the route knows. R
 and decide. Offline queue ops skip this check and resolve "latest wins, visibly"; see
 [offline and sync](/developers/offline-sync/).
 
+The OpenAPI document declares `If-Match` on every route that reads it: required on most writes,
+optional where a version is checked only when sent (a move, a trash, a reading) or only when the
+write replaces a row that already exists. The list is `IF_MATCH_ROUTES` in
+`apps/server/src/http/if-match.ts`.
+
 ## Idempotency
 
 A write may send `Idempotency-Key` (1 to 255 visible ASCII characters). The key is stored per

@@ -54,6 +54,7 @@ import { bearerHook } from '../tokens/verify.js';
 import { LIBRARY_STYLE_HASHES } from './csp-styles.js';
 import { toErrorReply } from './errors.js';
 import { type BuildInfo, healthRoutes } from './health.js';
+import { ifMatchTransform } from './if-match.js';
 import { ingressCookieHeader, ingressFraming, ingressHook } from './ingress.js';
 import { dbModuleLoader, type ModuleLoader, modulePreHandler } from './modules.js';
 import { registerInventoryRoutes } from './routes.js';
@@ -308,7 +309,8 @@ export async function buildApp(opts: AppOptions): Promise<KeptApp> {
       // in its `security` (tokens/access.ts).
       components: { securitySchemes: TOKEN_SECURITY_SCHEMES },
     },
-    transform: tokenSecurityTransform(jsonSchemaTransform),
+    // Each route that reads If-Match declares it as a header parameter (http/if-match.ts).
+    transform: tokenSecurityTransform(ifMatchTransform(jsonSchemaTransform)),
   });
 
   app.setErrorHandler((err, req, reply) => {

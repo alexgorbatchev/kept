@@ -32,22 +32,36 @@ function thrown(fn: () => unknown): AppError {
 }
 
 describe('If-Match and row versions', () => {
+  /** A request to a route listed in IF_MATCH_ROUTES. */
+  const onPlace = (headers: Record<string, string>) => ({
+    method: 'PATCH',
+    routeOptions: { url: '/api/v1/places/:id' },
+    headers,
+  });
+
   it.each([
     ['3', 3],
     ['"3"', 3],
     ['W/"12"', 12],
   ])('reads %s as %i', (header, version) => {
-    expect(requireIfMatch({ headers: { 'if-match': header } })).toBe(version);
+    expect(requireIfMatch(onPlace({ 'if-match': header }))).toBe(version);
   });
 
   it('refuses a write without If-Match with 428 precondition_failed', () => {
-    const err = thrown(() => requireIfMatch({ headers: {} }));
+    const err = thrown(() => requireIfMatch(onPlace({})));
     expect([err.status, err.code]).toEqual([428, 'precondition_failed']);
   });
 
   it('refuses a malformed If-Match with 400 validation', () => {
-    const err = thrown(() => requireIfMatch({ headers: { 'if-match': '*' } }));
+    const err = thrown(() => requireIfMatch(onPlace({ 'if-match': '*' })));
     expect([err.status, err.code]).toEqual([400, 'validation']);
+  });
+
+  it('refuses to run for a route missing from IF_MATCH_ROUTES, so the API document stays true', () => {
+    const unlisted = { method: 'PATCH', routeOptions: { url: '/api/v1/nowhere/:id' }, headers: {} };
+    expect(() => requireIfMatch(unlisted)).toThrow(
+      'PATCH /api/v1/nowhere/:id reads If-Match but is missing from IF_MATCH_ROUTES (http/if-match.ts)',
+    );
   });
 
   it('checkVersion() passes a match and 412s a mismatch with the conflicting fields', () => {

@@ -114,7 +114,9 @@ app.put(
   with the caller's scope set, so RLS applies to every query.
 - `config: { module: 'consumables' }` gates the routes on the location's module: a read is 404
   `module_off`, a write 409.
-- Edits send `If-Match` with the `row_version` they started from; a mismatch is 412.
+- Edits send `If-Match` with the `row_version` they started from; a mismatch is 412. A route that
+  reads it is listed in `IF_MATCH_ROUTES` (`apps/server/src/http/if-match.ts`), which declares the
+  header in the OpenAPI document; `requireIfMatch()` refuses to run for a route missing from it.
 - Errors are `AppError` with a code from `ErrorCode`. A database constraint can map to its own
   code in the `CODED` table of `apps/server/src/http/errors.ts`
   (`stock_rules_consumable` → `not_consumable`).
