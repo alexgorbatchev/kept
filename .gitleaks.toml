@@ -1,0 +1,21 @@
+title = "Kept secret policy"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+
+[[rules.allowlists]]
+description = "Static Home Assistant ingress token used by upstream integration tests"
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^Xy7_dT9-kLmN0pQrStUvWxYz0123456789abcdEFGH$''']
+paths = ['''^apps/server/src/(auth/extra-addresses|http/ingress\.app)\.test\.ts$''']
+
+[[rules.allowlists]]
+description = "Public security advisory cited in the authentication documentation"
+condition = "AND"
+regexTarget = "match"
+regexes = ['''better-auth 1\.7\.7 and later, GHSA-965c-763c-88jm''']
+paths = ['''^apps/docs/src/content/docs/developers/auth\.md$''']
