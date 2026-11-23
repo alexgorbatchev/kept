@@ -155,7 +155,10 @@ describe('startKept()', () => {
   });
 
   it('worker: starts pg-boss as kept_system and serves no HTTP', async () => {
-    const kept = await startKept(await envFor('worker'), { logger: silent() });
+    const kept = await startKept(await envFor('worker'), {
+      logger: silent(),
+      workerHeartbeatFile: path.join(configDir, 'worker-alive'),
+    });
     try {
       expect(kept.app).toBeNull();
       expect(kept.address).toBeNull();
@@ -186,7 +189,10 @@ describe('startKept()', () => {
       },
       { configDir },
     );
-    const kept = await startKept(env, { logger });
+    const kept = await startKept(env, {
+      logger,
+      workerHeartbeatFile: path.join(configDir, 'purge-worker-alive'),
+    });
     try {
       const id = await kept.boss?.send('purge', {});
       expect(id).toEqual(expect.any(String));

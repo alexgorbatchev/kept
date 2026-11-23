@@ -3,11 +3,11 @@
  * sent image's hash, so the e2e run can give its receipt a `$` (StartOptions.aiMockAnswersFile,
  * apps/web/e2e/serve.mjs). Without the mock there are no answers at all.
  */
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import type { LanguageModelV4CallOptions } from '@ai-sdk/provider';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, onTestFinished } from 'vitest';
 import { createMockModel, mockKey } from './mock.js';
 import { MOCK_ANSWERS_PATH, mockAnswersFor } from './runtime.js';
 
@@ -23,6 +23,7 @@ const textOf = (r: Awaited<ReturnType<ReturnType<typeof createMockModel>['doGene
 describe('the mock answers file', () => {
   it('answers an image from the file named, by its hash; others get the mode default', async () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'kept-mock-'));
+    onTestFinished(() => rmSync(dir, { recursive: true, force: true }));
     const file = path.join(dir, 'answers.json');
     const receipt = new Uint8Array([0xff, 0xd8, 1, 2, 3]);
     const other = new Uint8Array([0xff, 0xd8, 9]);

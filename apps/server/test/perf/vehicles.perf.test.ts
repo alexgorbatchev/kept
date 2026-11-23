@@ -238,7 +238,11 @@ beforeAll(async () => {
 }, 900_000);
 
 afterAll(async () => {
-  await t?.app.close();
+  try {
+    await t?.app.close();
+  } finally {
+    await files?.cleanup();
+  }
   const dir = path.join(packageRoot(), '../../.tmp/perf');
   mkdirSync(dir, { recursive: true });
   const file = path.join(dir, 'step5.json');

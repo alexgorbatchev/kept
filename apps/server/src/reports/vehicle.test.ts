@@ -201,7 +201,11 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await t.app.close();
+  try {
+    await t?.app.close();
+  } finally {
+    await files?.cleanup();
+  }
 });
 
 describe('POST /api/v1/reports/vehicle-history', () => {

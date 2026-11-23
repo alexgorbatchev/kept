@@ -84,6 +84,8 @@ export type StartOptions = {
    * the defaults, pg-boss alone held 88 of max_connections' 100 with every server idle.
    */
   poolMax?: number;
+  /** Worker liveness file. Defaults to the container healthcheck's shared path. */
+  workerHeartbeatFile?: string;
 };
 
 export type RunningKept = {
@@ -265,6 +267,7 @@ export async function startKept(env: Env, opts: StartOptions = {}): Promise<Runn
       // the image's healthcheck reads (jobs/liveness.ts, docker/healthcheck.mjs).
       if (env.KEPT_ROLE === 'worker') {
         stopHeartbeat = startWorkerHeartbeat(boss, {
+          file: opts.workerHeartbeatFile,
           onError: (err) => logger.warn({ err }, 'worker heartbeat not written'),
         });
       }
